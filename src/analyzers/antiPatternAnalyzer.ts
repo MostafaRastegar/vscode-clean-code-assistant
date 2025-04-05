@@ -399,7 +399,11 @@ export class AntiPatternAnalyzer implements CodeAnalyzer {
                 isPrimitive = ["string", "number", "boolean"].includes(
                   typeStr.toLowerCase()
                 );
-              } else if (ts.isKeywordTypeNode(param.type)) {
+              } else if (
+                // Fix: Use syntax kind check instead of isKeywordTypeNode
+                param.type.kind >= ts.SyntaxKind.StringKeyword &&
+                param.type.kind <= ts.SyntaxKind.UndefinedKeyword
+              ) {
                 isPrimitive = true;
               }
             } else {

@@ -326,10 +326,12 @@ export class NamingAnalyzer implements CodeAnalyzer {
   }
 
   private toPascalCase(str: string): string {
-    // Simple logic to convert a string to PascalCase
-    return str
+    const withSpaces = str.replace(/([A-Z])/g, ' $1');
+    
+    return withSpaces
       .replace(/[^a-zA-Z0-9]/g, " ")
       .split(" ")
+      .filter(word => word.length > 0)
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join("");
   }

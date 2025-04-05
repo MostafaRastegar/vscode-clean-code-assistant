@@ -2,7 +2,7 @@
   "name": "vscode-clean-code-assistant",
   "displayName": "vscode-clean-code-assistant",
   "description": "An extension that analyzes code and provides clean code suggestions",
-  "version": "0.0.1",
+  "version": "0.0.6",
   "engines": {
     "vscode": "^1.54.0"
   },
@@ -11,6 +11,7 @@
     "Programming Languages",
     "Other"
   ],
+  "icon": "resources/icon.png",
   "keywords": [
     "clean code",
     "refactoring",
@@ -18,14 +19,13 @@
     "SOLID",
     "best practices"
   ],
-  "icon": "assets/icon.png",
-  "homepage": "https://github.com/yourusername/clean-code-assistant",
+  "homepage": "https://github.com/MostafaRastegar/vscode-clean-code-assistant",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/clean-code-assistant"
+    "url": "https://github.com/MostafaRastegar/vscode-clean-code-assistant"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/clean-code-assistant/issues"
+    "url": "https://github.com/MostafaRastegar/vscode-clean-code-assistant/issues"
   },
   "license": "MIT",
   "activationEvents": [
@@ -40,7 +40,7 @@
         {
           "id": "clean-code-assistant",
           "title": "Clean Code Assistant",
-          "icon": "$(check-all)"
+          "icon": "resources/clean-code-icon.svg"
         }
       ]
     },

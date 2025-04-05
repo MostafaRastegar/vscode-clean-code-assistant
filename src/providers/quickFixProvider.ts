@@ -153,24 +153,77 @@ export class CleanCodeActionProvider implements vscode.CodeActionProvider {
   /**
    * Adds quick fixes for duplicate code issues
    */
+
   private addDuplicateCodeActions(
     document: vscode.TextDocument,
     diagnostic: vscode.Diagnostic,
     codeActions: vscode.CodeAction[]
   ): void {
-    // Extract to helper function action
-    const extractHelperAction = new vscode.CodeAction(
-      "Extract duplicate code to helper function",
+    const guidedAction = new vscode.CodeAction(
+      "Get quick guide for removing duplication",
       vscode.CodeActionKind.QuickFix
     );
-    extractHelperAction.command = {
-      title: "Extract Helper Function",
-      command: "clean-code-assistant.extractDuplicateCode",
-      arguments: [document, diagnostic.range],
+
+    guidedAction.edit = new vscode.WorkspaceEdit();
+    const tempUri = vscode.Uri.parse(`untitled:DRY-Guide-${Date.now()}.md`);
+
+    guidedAction.edit.insert(
+      tempUri,
+      new vscode.Position(0, 0),
+      `# راهنمای ساده رفع کد تکراری
+
+3 روش اصلی برای رفع کد تکراری:
+
+## 1. استخراج به یک تابع جدید
+
+\`\`\`typescript
+// قبل:
+if (name.length < 2) return false;
+if (!email.includes('@')) return false;
+
+// بعد:
+function validate(name, email) {
+  if (name.length < 2) return false;
+  if (!email.includes('@')) return false;
+  return true;
+}
+\`\`\`
+
+## 2. استفاده از یک آبجکت برای پارامترهای متعدد
+
+\`\`\`typescript
+// قبل:
+function create(name, email, password, age) { ... }
+
+// بعد:
+function create(userData) { ... }
+\`\`\`
+
+## 3. استخراج منطق مشترک به یک کلاس جدید
+
+\`\`\`typescript
+// جدا کردن منطق اعتبارسنجی به یک کلاس validator
+class UserValidator {
+  validate(user) {
+    // منطق اعتبارسنجی
+  }
+}
+\`\`\`
+`
+    );
+
+    guidedAction.diagnostics = [diagnostic];
+    codeActions.push(guidedAction);
+
+    // دکمه دوم برای دیدن مستندات کامل
+    const docAction = new vscode.CodeAction("Learn more about DRY Principle");
+    docAction.command = {
+      title: "Show DRY Documentation",
+      command: "clean-code-assistant.showDocumentation",
+      arguments: [{ issueType: IssueType.DuplicateCode }],
     };
-    extractHelperAction.diagnostics = [diagnostic];
-    extractHelperAction.isPreferred = true;
-    codeActions.push(extractHelperAction);
+    docAction.diagnostics = [diagnostic];
+    codeActions.push(docAction);
   }
 
   /**
@@ -279,19 +332,23 @@ export class CleanCodeActionProvider implements vscode.CodeActionProvider {
    * Converts a string to PascalCase
    */
   private toPascalCase(str: string): string {
+    // ابتدا حروف بزرگ را تشخیص می‌دهیم تا بتوانیم کلمات در camelCase را پیدا کنیم
+    // برای مثال: "userHandler" به "user Handler" تبدیل می‌شود
+    const withSpaces = str.replace(/([A-Z])/g, " $1");
+
     return (
-      str
-        // Replace non-alphanumeric characters with spaces
+      withSpaces
+        // حذف کاراکترهای غیرمجاز و جایگزینی با فاصله
         .replace(/[^a-zA-Z0-9]/g, " ")
-        // Split into words
+        // تقسیم به کلمات
         .split(" ")
-        // Filter out empty strings
+        // حذف رشته‌های خالی
         .filter((word) => word.length > 0)
-        // Capitalize first letter of each word
+        // حرف اول هر کلمه بزرگ، بقیه کوچک
         .map(
           (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
         )
-        // Join back together
+        // اتصال مجدد کلمات
         .join("")
     );
   }
