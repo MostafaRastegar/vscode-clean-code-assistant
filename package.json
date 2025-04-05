@@ -1,0 +1,242 @@
+{
+  "name": "vscode-clean-code-assistant",
+  "displayName": "vscode-clean-code-assistant",
+  "description": "An extension that analyzes code and provides clean code suggestions",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.54.0"
+  },
+  "categories": [
+    "Linters",
+    "Programming Languages",
+    "Other"
+  ],
+  "keywords": [
+    "clean code",
+    "refactoring",
+    "code quality",
+    "SOLID",
+    "best practices"
+  ],
+  "icon": "assets/icon.png",
+  "homepage": "https://github.com/yourusername/clean-code-assistant",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/clean-code-assistant"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/clean-code-assistant/issues"
+  },
+  "license": "MIT",
+  "activationEvents": [
+    "onLanguage:javascript",
+    "onLanguage:typescript",
+    "onCommand:clean-code-assistant.analyze"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "clean-code-assistant",
+          "title": "Clean Code Assistant",
+          "icon": "$(check-all)"
+        }
+      ]
+    },
+    "views": {
+      "clean-code-assistant": [
+        {
+          "type": "webview",
+          "id": "clean-code-assistant.dashboard",
+          "name": "Dashboard"
+        },
+        {
+          "type": "webview",
+          "id": "clean-code-assistant.documentation",
+          "name": "Documentation"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "clean-code-assistant.refreshDashboard",
+          "when": "view == clean-code-assistant.dashboard",
+          "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "clean-code-assistant.analyze",
+          "when": "editorLangId == javascript || editorLangId == typescript",
+          "group": "clean-code"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "clean-code-assistant.analyze",
+        "title": "Analyze Code for Clean Code Issues"
+      },
+      {
+        "command": "clean-code-assistant.refreshDashboard",
+        "title": "Refresh Dashboard",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "clean-code-assistant.showDocumentation",
+        "title": "Show Clean Code Documentation"
+      },
+      {
+        "command": "clean-code-assistant.extractFunction",
+        "title": "Extract Function"
+      },
+      {
+        "command": "clean-code-assistant.extractDuplicateCode",
+        "title": "Extract Duplicate Code"
+      },
+      {
+        "command": "clean-code-assistant.extractClass",
+        "title": "Extract Class"
+      },
+      {
+        "command": "clean-code-assistant.splitInterface",
+        "title": "Split Interface"
+      },
+      {
+        "command": "clean-code-assistant.applyStrategyPattern",
+        "title": "Apply Strategy Pattern"
+      },
+      {
+        "command": "clean-code-assistant.applyDependencyInjection",
+        "title": "Apply Dependency Injection"
+      }
+    ],
+    "configuration": {
+      "title": "Clean Code Assistant",
+      "properties": {
+        "cleanCodeAssistant.enableComplexityAnalyzer": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable or disable complexity analysis"
+        },
+        "cleanCodeAssistant.maxComplexity": {
+          "type": "number",
+          "default": 10,
+          "description": "Maximum cyclomatic complexity allowed before warning"
+        },
+        "cleanCodeAssistant.enableNamingAnalyzer": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable or disable naming analysis"
+        },
+        "cleanCodeAssistant.minNameLength": {
+          "type": "number",
+          "default": 2,
+          "description": "Minimum length for identifiers (except common short names like 'i' for loops)"
+        },
+        "cleanCodeAssistant.maxNameLength": {
+          "type": "number",
+          "default": 30,
+          "description": "Maximum length for identifiers before warning"
+        },
+        "cleanCodeAssistant.enableDuplicateCodeAnalyzer": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable or disable duplicate code analysis"
+        },
+        "cleanCodeAssistant.minDuplicateBlockSize": {
+          "type": "number",
+          "default": 5,
+          "description": "Minimum number of lines a block must have to be considered for duplication analysis"
+        },
+        "cleanCodeAssistant.enableSolidPrinciplesAnalyzer": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable or disable SOLID principles analysis"
+        },
+        "cleanCodeAssistant.maxClassMethods": {
+          "type": "number",
+          "default": 10,
+          "description": "Maximum number of methods a class can have before warning about SRP violation"
+        },
+        "cleanCodeAssistant.maxMethodLines": {
+          "type": "number",
+          "default": 30,
+          "description": "Maximum number of lines a method can have before warning about SRP violation"
+        },
+        "cleanCodeAssistant.maxCaseClauses": {
+          "type": "number",
+          "default": 5,
+          "description": "Maximum number of case clauses in a switch before warning about OCP violation"
+        },
+        "cleanCodeAssistant.maxInterfaceMethods": {
+          "type": "number",
+          "default": 5,
+          "description": "Maximum number of methods an interface can have before warning about ISP violation"
+        },
+        "cleanCodeAssistant.enableAntiPatternAnalyzer": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable or disable anti-pattern analysis"
+        },
+        "cleanCodeAssistant.maxClassSize": {
+          "type": "number",
+          "default": 200,
+          "description": "Maximum lines of code in a class before warning about God Object"
+        },
+        "cleanCodeAssistant.maxClassProperties": {
+          "type": "number",
+          "default": 15,
+          "description": "Maximum number of properties in a class before warning about God Object"
+        },
+        "cleanCodeAssistant.featureEnvyThreshold": {
+          "type": "number",
+          "default": 3,
+          "description": "Number of external property accesses before warning about Feature Envy"
+        },
+        "cleanCodeAssistant.maxParameterCount": {
+          "type": "number",
+          "default": 4,
+          "description": "Maximum number of parameters in a function before warning"
+        },
+        "cleanCodeAssistant.minStringLiteralOccurrences": {
+          "type": "number",
+          "default": 3,
+          "description": "Minimum occurrences of a string literal before warning about potential Shotgun Surgery"
+        },
+        "cleanCodeAssistant.minDataClumpSize": {
+          "type": "number",
+          "default": 3,
+          "description": "Minimum number of parameters that appear together to be considered a Data Clump"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.54.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "20.x",
+    "@typescript-eslint/eslint-plugin": "^8.17.0",
+    "@typescript-eslint/parser": "^8.17.0",
+    "eslint": "^9.16.0",
+    "typescript": "^5.7.2",
+    "ts-loader": "^9.5.1",
+    "webpack": "^5.95.0",
+    "webpack-cli": "^5.1.4",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.1"
+  }
+}
