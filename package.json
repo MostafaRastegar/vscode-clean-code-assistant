@@ -3,6 +3,9 @@
   "displayName": "vscode-clean-code-assistant",
   "description": "An extension that analyzes code and provides clean code suggestions",
   "version": "0.0.6",
+  "publisher": "MostafaRastegar",
+  "author": "Mostafa Rastegar <m.rastegar991@gmail.com>",
+  "license": "MIT",
   "engines": {
     "vscode": "^1.54.0"
   },
@@ -27,7 +30,6 @@
   "bugs": {
     "url": "https://github.com/MostafaRastegar/vscode-clean-code-assistant/issues"
   },
-  "license": "MIT",
   "activationEvents": [
     "onLanguage:javascript",
     "onLanguage:typescript",
