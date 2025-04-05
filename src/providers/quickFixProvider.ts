@@ -170,18 +170,18 @@ export class CleanCodeActionProvider implements vscode.CodeActionProvider {
     guidedAction.edit.insert(
       tempUri,
       new vscode.Position(0, 0),
-      `# راهنمای ساده رفع کد تکراری
+      `# Simple Guide to Remove Duplicate Code
 
-3 روش اصلی برای رفع کد تکراری:
+3 main methods to remove duplicate code:
 
-## 1. استخراج به یک تابع جدید
+## 1. Extract to a new function
 
 \`\`\`typescript
-// قبل:
+// Before:
 if (name.length < 2) return false;
 if (!email.includes('@')) return false;
 
-// بعد:
+// After:
 function validate(name, email) {
   if (name.length < 2) return false;
   if (!email.includes('@')) return false;
@@ -189,23 +189,23 @@ function validate(name, email) {
 }
 \`\`\`
 
-## 2. استفاده از یک آبجکت برای پارامترهای متعدد
+## 2. Use an object for multiple parameters
 
 \`\`\`typescript
-// قبل:
+// Before:
 function create(name, email, password, age) { ... }
 
-// بعد:
+// After:
 function create(userData) { ... }
 \`\`\`
 
-## 3. استخراج منطق مشترک به یک کلاس جدید
+## 3. Extract common logic to a new class
 
 \`\`\`typescript
-// جدا کردن منطق اعتبارسنجی به یک کلاس validator
+// Separate validation logic into a validator class
 class UserValidator {
   validate(user) {
-    // منطق اعتبارسنجی
+    // Validation logic
   }
 }
 \`\`\`
@@ -215,7 +215,7 @@ class UserValidator {
     guidedAction.diagnostics = [diagnostic];
     codeActions.push(guidedAction);
 
-    // دکمه دوم برای دیدن مستندات کامل
+    // Second button to see full documentation
     const docAction = new vscode.CodeAction("Learn more about DRY Principle");
     docAction.command = {
       title: "Show DRY Documentation",
@@ -332,23 +332,23 @@ class UserValidator {
    * Converts a string to PascalCase
    */
   private toPascalCase(str: string): string {
-    // ابتدا حروف بزرگ را تشخیص می‌دهیم تا بتوانیم کلمات در camelCase را پیدا کنیم
-    // برای مثال: "userHandler" به "user Handler" تبدیل می‌شود
+    // First, detect uppercase letters to identify words in camelCase
+    // For example: "userHandler" becomes "user Handler"
     const withSpaces = str.replace(/([A-Z])/g, " $1");
 
     return (
       withSpaces
-        // حذف کاراکترهای غیرمجاز و جایگزینی با فاصله
+        // Remove invalid characters and replace with space
         .replace(/[^a-zA-Z0-9]/g, " ")
-        // تقسیم به کلمات
+        // Split into words
         .split(" ")
-        // حذف رشته‌های خالی
+        // Remove empty strings
         .filter((word) => word.length > 0)
-        // حرف اول هر کلمه بزرگ، بقیه کوچک
+        // First letter of each word uppercase, rest lowercase
         .map(
           (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
         )
-        // اتصال مجدد کلمات
+        // Rejoin words
         .join("")
     );
   }

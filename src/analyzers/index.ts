@@ -6,7 +6,7 @@ import { NamingAnalyzer } from "./namingAnalyzer";
 import { DuplicateCodeAnalyzer } from "./duplicateCodeAnalyzer";
 import { SolidPrinciplesAnalyzer } from "./solidPrinciplesAnalyzer";
 import { AntiPatternAnalyzer } from "./antiPatternAnalyzer";
-// در آینده آنالیزرهای بیشتری اضافه خواهیم کرد
+// We will add more analyzers in the future
 
 export function initializeAnalyzers(
   context: vscode.ExtensionContext
@@ -17,7 +17,7 @@ export function initializeAnalyzers(
     new DuplicateCodeAnalyzer(),
     new SolidPrinciplesAnalyzer(),
     new AntiPatternAnalyzer(),
-    // آنالیزرهای دیگر در آینده اضافه خواهند شد
+    // More analyzers will be added in the future
   ];
 
   return analyzers;

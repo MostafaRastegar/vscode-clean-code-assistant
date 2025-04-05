@@ -1,16 +1,16 @@
-// simple-bad-practices.ts - نمونه کد کوتاه با مشکلات متعدد
+// simple-bad-practices.ts - Short code sample with multiple issues
 
-// نام متغیر با حرف بزرگ شروع شده (نقض قرارداد نام‌گذاری)
+// Variable name starts with uppercase (naming convention violation)
 let User = {
   name: "John",
   email: "john@example.com",
 };
 
-// نام‌های خیلی کوتاه و مبهم
+// Very short and ambiguous names
 function calc(a: number, b: number, t: string): number {
   let r = 0;
 
-  // پیچیدگی بالا با شرط‌های تو در تو
+  // High complexity with nested conditions
   if (t === "add") {
     r = a + b;
   } else if (t === "sub") {
@@ -31,20 +31,20 @@ function calc(a: number, b: number, t: string): number {
   return r;
 }
 
-// کلاس با مسئولیت‌های متعدد (نقض SRP)
+// Class with multiple responsibilities (SRP violation)
 class UserHandler {
-  // نام کلاس با حرف کوچک شروع شده
+  // Class name starts with lowercase letter
   private data: any = {};
   private logger: any;
   private db: any;
 
   constructor() {
-    // وابستگی مستقیم به کلاس‌های دیگر (نقض DIP)
+    // Direct dependency on other classes (DIP violation)
     this.logger = new Logger();
     this.db = new Database("connection-string");
   }
 
-  // لیست پارامتر طولانی
+  // Long parameter list
   createUser(
     firstName: string,
     lastName: string,
@@ -84,7 +84,7 @@ class UserHandler {
       firstName,
       lastName,
       email,
-      password, // ذخیره رمز عبور به صورت متن ساده
+      password, // Storing password as plain text
       age,
       country,
     };
@@ -100,7 +100,7 @@ class UserHandler {
     return true;
   }
 
-  // کد تکراری با تابع بالا
+  // Duplicated code from the function above
   updateUser(
     firstName: string,
     lastName: string,
@@ -156,7 +156,7 @@ class UserHandler {
     return true;
   }
 
-  // مسئولیت‌های اضافی که در این کلاس نمی‌گنجد
+  // Additional responsibilities that don't belong in this class
   sendEmail(to: string, subject: string, body: string): void {
     console.log(`Sending email to ${to}: ${subject}`);
     // Implementation...
@@ -169,7 +169,7 @@ class UserHandler {
   }
 }
 
-// Primitive Obsession - باید از کلاس Address استفاده می‌شد
+// Primitive Obsession - should use an Address class instead
 function formatAddress(
   street: string,
   city: string,
@@ -180,7 +180,7 @@ function formatAddress(
   return `${street}, ${city}, ${state} ${zipCode}, ${country}`;
 }
 
-// مثال mockup برای تکمیل کد
+// Mockup example classes to complete the code
 class Logger {
   log(message: string): void {
     console.log(`LOG: ${message}`);
@@ -196,7 +196,7 @@ class Database {
   }
 }
 
-// Interface Segregation Principle violation - یک interface بزرگ با متدهای متعدد
+// Interface Segregation Principle violation - a large interface with multiple methods
 interface UserRepository {
   createUser(user: any): void;
   updateUser(user: any): void;
