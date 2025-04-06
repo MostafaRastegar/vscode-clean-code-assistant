@@ -2,7 +2,7 @@
   "name": "vscode-clean-code-assistant",
   "displayName": "clean-code-assistant",
   "description": "An extension that analyzes code and provides clean code suggestions",
-  "version": "0.0.9",
+  "version": "0.1.0",
   "publisher": "MostafaRastegar",
   "author": "Mostafa Rastegar <m.rastegar991@gmail.com>",
   "license": "MIT",
@@ -73,10 +73,33 @@
           "command": "clean-code-assistant.analyze",
           "when": "editorLangId == javascript || editorLangId == typescript",
           "group": "clean-code"
+        },
+        {
+          "command": "clean-code-assistant.removeIgnoreCommentsFromCurrentFile",
+          "when": "editorLangId == javascript || editorLangId == typescript",
+          "group": "clean-code"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "clean-code-assistant.removeIgnoreCommentsFromCurrentFile",
+          "when": "editorLangId == javascript || editorLangId == typescript"
+        },
+        {
+          "command": "clean-code-assistant.removeIgnoreCommentsFromAllFiles",
+          "when": "workspaceFolderCount > 0"
         }
       ]
     },
     "commands": [
+      {
+        "command": "clean-code-assistant.removeIgnoreCommentsFromCurrentFile",
+        "title": "Clean Code: Remove ignore comments from current file"
+      },
+      {
+        "command": "clean-code-assistant.removeIgnoreCommentsFromAllFiles",
+        "title": "Clean Code: Remove ignore comments from all files"
+      },
       {
         "command": "clean-code-assistant.analyze",
         "title": "Analyze Code for Clean Code Issues"
@@ -122,6 +145,21 @@
     "configuration": {
       "title": "Clean Code Assistant",
       "properties": {
+        "cleanCodeAssistant.enableIgnoreComments": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable or disable support for ignore comments (// clean-code-ignore)"
+        },
+        "cleanCodeAssistant.ignoreCommentFormat": {
+          "type": "string",
+          "default": "// clean-code-ignore: {type}",
+          "description": "Format for ignore comments. Use {type} placeholder for the issue type."
+        },
+        "cleanCodeAssistant.includeCommentDescriptions": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include descriptions in ignore comments"
+        },
         "cleanCodeAssistant.analysisMode": {
           "type": "string",
           "default": "onChange",

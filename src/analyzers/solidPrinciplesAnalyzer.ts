@@ -9,6 +9,7 @@ import {
   IssueType,
 } from "../models/codeIssue";
 import { BlockInfo } from "../utils/cacheManager";
+import { IgnoreCommentHandler } from "../utils/ignoreUtils";
 
 export class SolidPrinciplesAnalyzer implements CodeAnalyzer {
   id = "solid-principles";
@@ -141,6 +142,17 @@ export class SolidPrinciplesAnalyzer implements CodeAnalyzer {
             end = document.positionAt(nodeEnd);
           }
 
+          // Check if this issue is ignored
+          if (
+            IgnoreCommentHandler.isIssueIgnored(
+              document,
+              start.line,
+              IssueType.SolidViolation
+            )
+          ) {
+            return;
+          }
+
           const issue: CodeIssue = {
             type: IssueType.SolidViolation,
             message: `Class "${className}" has ${methods.length} methods, which may violate the Single Responsibility Principle.`,
@@ -202,6 +214,17 @@ export class SolidPrinciplesAnalyzer implements CodeAnalyzer {
           } else {
             start = document.positionAt(nodeStart);
             end = document.positionAt(nodeEnd);
+          }
+
+          // Check if this issue is ignored
+          if (
+            IgnoreCommentHandler.isIssueIgnored(
+              document,
+              start.line,
+              IssueType.SolidViolation
+            )
+          ) {
+            return;
           }
 
           const issue: CodeIssue = {
@@ -271,6 +294,17 @@ export class SolidPrinciplesAnalyzer implements CodeAnalyzer {
             end = document.positionAt(nodeEnd);
           }
 
+          // Check if this issue is ignored
+          if (
+            IgnoreCommentHandler.isIssueIgnored(
+              document,
+              start.line,
+              IssueType.SolidViolation
+            )
+          ) {
+            return;
+          }
+
           const issue: CodeIssue = {
             type: IssueType.SolidViolation,
             message: `Switch statement has ${clauses.length} cases, which may violate the Open/Closed Principle.`,
@@ -327,6 +361,17 @@ export class SolidPrinciplesAnalyzer implements CodeAnalyzer {
           } else {
             start = document.positionAt(nodeStart);
             end = document.positionAt(nodeEnd);
+          }
+
+          // Check if this issue is ignored
+          if (
+            IgnoreCommentHandler.isIssueIgnored(
+              document,
+              start.line,
+              IssueType.SolidViolation
+            )
+          ) {
+            return;
           }
 
           const issue: CodeIssue = {
@@ -396,6 +441,17 @@ export class SolidPrinciplesAnalyzer implements CodeAnalyzer {
           } else {
             start = document.positionAt(nodeStart);
             end = document.positionAt(nodeEnd);
+          }
+
+          // Check if this issue is ignored
+          if (
+            IgnoreCommentHandler.isIssueIgnored(
+              document,
+              start.line,
+              IssueType.SolidViolation
+            )
+          ) {
+            return;
           }
 
           const issue: CodeIssue = {
@@ -472,6 +528,17 @@ export class SolidPrinciplesAnalyzer implements CodeAnalyzer {
               } else {
                 start = document.positionAt(nodeStart);
                 end = document.positionAt(nodeEnd);
+              }
+
+              // Check if this issue is ignored
+              if (
+                IgnoreCommentHandler.isIssueIgnored(
+                  document,
+                  start.line,
+                  IssueType.SolidViolation
+                )
+              ) {
+                return;
               }
 
               const issue: CodeIssue = {

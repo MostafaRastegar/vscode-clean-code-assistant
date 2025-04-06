@@ -10,6 +10,7 @@ import {
 } from "../models/codeIssue";
 import { getLineText } from "../utils/documentUtils";
 import { BlockInfo } from "../utils/cacheManager";
+import { IgnoreCommentHandler } from "../utils/ignoreUtils";
 
 export class DuplicateCodeAnalyzer implements CodeAnalyzer {
   id = "duplicate-code";
@@ -62,6 +63,18 @@ export class DuplicateCodeAnalyzer implements CodeAnalyzer {
           endLine = block.endLine;
         }
 
+        // Check if this duplicate code issue is ignored via comment at the start of the block
+        if (
+          IgnoreCommentHandler.isIssueIgnored(
+            document,
+            startLine,
+            IssueType.DuplicateCode
+          )
+        ) {
+          // Skip this issue if it's ignored
+          continue;
+        }
+
         const range = new vscode.Range(
           startLine,
           0,
@@ -93,14 +106,9 @@ export class DuplicateCodeAnalyzer implements CodeAnalyzer {
     return config.get<boolean>("enableDuplicateCodeAnalyzer", true);
   }
 
-  /**
-   * Finds duplicate code blocks in a document using an optimized algorithm
-   * based on rolling hash techniques
-   * @param document The document to analyze
-   * @param minBlockSize Minimum number of lines to consider as a block
-   * @param blockInfo Optional block info for analyzing just a portion of the document
-   * @returns Array of duplicate blocks with their positions
-   */
+  // The rest of the analyzer code remains unchanged...
+  // (findDuplicateBlocksOptimized, processBlockHash, filterAndVerifyDuplicates, etc.)
+
   private findDuplicateBlocksOptimized(
     document: vscode.TextDocument,
     minBlockSize: number,
@@ -180,9 +188,6 @@ export class DuplicateCodeAnalyzer implements CodeAnalyzer {
     return this.filterAndVerifyDuplicates(duplicates, document);
   }
 
-  /**
-   * Process a block hash to find duplicates
-   */
   private processBlockHash(
     blockHash: number,
     startLine: number,
@@ -230,9 +235,6 @@ export class DuplicateCodeAnalyzer implements CodeAnalyzer {
     }
   }
 
-  /**
-   * Filters duplicates and verifies hash collisions
-   */
   private filterAndVerifyDuplicates(
     duplicates: DuplicateBlock[],
     document: vscode.TextDocument
@@ -321,9 +323,6 @@ export class DuplicateCodeAnalyzer implements CodeAnalyzer {
     return result;
   }
 
-  /**
-   * Checks if a line is in any of the added ranges
-   */
   private isLineInAnyAddedRange(
     line: number,
     addedRanges: Set<string>
@@ -337,9 +336,6 @@ export class DuplicateCodeAnalyzer implements CodeAnalyzer {
     return false;
   }
 
-  /**
-   * Gets the content of a block as a single string
-   */
   private getBlockContent(
     document: vscode.TextDocument,
     startLine: number,
@@ -352,10 +348,6 @@ export class DuplicateCodeAnalyzer implements CodeAnalyzer {
     return content;
   }
 
-  /**
-   * Generates a simple hash of a string
-   * This is not a cryptographic hash, just a quick identifier for strings
-   */
   private simpleHash(str: string): number {
     let hash = 0;
     if (str.length === 0) {
@@ -371,9 +363,6 @@ export class DuplicateCodeAnalyzer implements CodeAnalyzer {
     return hash;
   }
 
-  /**
-   * Combines hashes for block initialization
-   */
   private combineHashes(
     currentHash: number,
     newHash: number,
@@ -383,9 +372,6 @@ export class DuplicateCodeAnalyzer implements CodeAnalyzer {
     return currentHash * 37 + newHash + position;
   }
 
-  /**
-   * Adds a new line to an existing rolling hash
-   */
   private addToRollingHash(
     currentHash: number,
     newHash: number,
@@ -394,10 +380,6 @@ export class DuplicateCodeAnalyzer implements CodeAnalyzer {
     return currentHash * 7 + newHash + position;
   }
 
-  /**
-   * Checks if a code block is too simple to be considered for duplication analysis
-   * (e.g., blocks with just brackets, single statements, etc.)
-   */
   private isBlockTooSimple(content: string): boolean {
     // Remove whitespace and check content length
     const trimmedContent = content.replace(/\s+/g, "");

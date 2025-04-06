@@ -10,6 +10,7 @@ import {
 } from "../models/codeIssue";
 import { getFunctionInfo } from "../utils/astUtils";
 import { BlockInfo } from "../utils/cacheManager";
+import { IgnoreCommentHandler } from "../utils/ignoreUtils";
 
 export class ComplexityAnalyzer implements CodeAnalyzer {
   id = "complexity";
@@ -87,6 +88,18 @@ export class ComplexityAnalyzer implements CodeAnalyzer {
         } else {
           start = document.positionAt(nodeStart);
           end = document.positionAt(nodeEnd);
+        }
+
+        // Check if this issue is ignored via comment
+        if (
+          IgnoreCommentHandler.isIssueIgnored(
+            document,
+            start.line,
+            IssueType.Complexity
+          )
+        ) {
+          // Skip this issue if it's ignored
+          return;
         }
 
         const issue: CodeIssue = {

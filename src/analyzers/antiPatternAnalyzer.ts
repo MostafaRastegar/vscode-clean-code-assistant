@@ -9,6 +9,7 @@ import {
   IssueType,
 } from "../models/codeIssue";
 import { BlockInfo } from "../utils/cacheManager";
+import { IgnoreCommentHandler } from "../utils/ignoreUtils";
 
 export class AntiPatternAnalyzer implements CodeAnalyzer {
   id = "anti-pattern";
@@ -171,6 +172,18 @@ export class AntiPatternAnalyzer implements CodeAnalyzer {
             end = document.positionAt(nodeEnd);
           }
 
+          // Check if this issue is ignored via comment
+          if (
+            IgnoreCommentHandler.isIssueIgnored(
+              document,
+              start.line,
+              IssueType.AntiPattern
+            )
+          ) {
+            // Skip this issue if it's ignored
+            return;
+          }
+
           const issue: CodeIssue = {
             type: IssueType.AntiPattern,
             message: `God Object: Class "${className}" has ${linesOfCode} lines, which is a sign it may have too many responsibilities.`,
@@ -210,6 +223,18 @@ export class AntiPatternAnalyzer implements CodeAnalyzer {
           } else {
             start = document.positionAt(nodeStart);
             end = document.positionAt(nodeEnd);
+          }
+
+          // Check if this issue is ignored via comment
+          if (
+            IgnoreCommentHandler.isIssueIgnored(
+              document,
+              start.line,
+              IssueType.AntiPattern
+            )
+          ) {
+            // Skip this issue if it's ignored
+            return;
           }
 
           const issue: CodeIssue = {
@@ -360,6 +385,18 @@ export class AntiPatternAnalyzer implements CodeAnalyzer {
               end = document.positionAt(nodeEnd);
             }
 
+            // Check if this issue is ignored via comment
+            if (
+              IgnoreCommentHandler.isIssueIgnored(
+                document,
+                start.line,
+                IssueType.AntiPattern
+              )
+            ) {
+              // Skip this issue if it's ignored
+              continue;
+            }
+
             const issue: CodeIssue = {
               type: IssueType.AntiPattern,
               message: `Feature Envy: Method "${methodName}" accesses properties of "${objName}" ${count} times, but only uses its own class properties ${ownPropsAccessed} times.`,
@@ -431,6 +468,18 @@ export class AntiPatternAnalyzer implements CodeAnalyzer {
         } else {
           start = document.positionAt(nodeStart);
           end = document.positionAt(nodeEnd);
+        }
+
+        // Check if this issue is ignored via comment
+        if (
+          IgnoreCommentHandler.isIssueIgnored(
+            document,
+            start.line,
+            IssueType.AntiPattern
+          )
+        ) {
+          // Skip this issue if it's ignored
+          return;
         }
 
         const issue: CodeIssue = {
@@ -532,6 +581,18 @@ export class AntiPatternAnalyzer implements CodeAnalyzer {
               } else {
                 start = document.positionAt(nodeStart);
                 end = document.positionAt(nodeEnd);
+              }
+
+              // Check if this issue is ignored via comment
+              if (
+                IgnoreCommentHandler.isIssueIgnored(
+                  document,
+                  start.line,
+                  IssueType.AntiPattern
+                )
+              ) {
+                // Skip this issue if it's ignored
+                return;
               }
 
               const issue: CodeIssue = {

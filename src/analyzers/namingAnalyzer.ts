@@ -9,6 +9,7 @@ import {
   IssueType,
 } from "../models/codeIssue";
 import { BlockInfo } from "../utils/cacheManager";
+import { IgnoreCommentHandler } from "../utils/ignoreUtils";
 
 export class NamingAnalyzer implements CodeAnalyzer {
   id = "naming";
@@ -87,6 +88,18 @@ export class NamingAnalyzer implements CodeAnalyzer {
           end = document.positionAt(nodeEnd);
         }
 
+        // Check if this issue is ignored via comment
+        if (
+          IgnoreCommentHandler.isIssueIgnored(
+            document,
+            start.line,
+            IssueType.Naming
+          )
+        ) {
+          // Skip this issue if it's ignored
+          return;
+        }
+
         const issue: CodeIssue = {
           type: IssueType.Naming,
           message: `${this.getKindName(kind)} name "${name}" is too short (${
@@ -130,6 +143,18 @@ export class NamingAnalyzer implements CodeAnalyzer {
           end = document.positionAt(nodeEnd);
         }
 
+        // Check if this issue is ignored via comment
+        if (
+          IgnoreCommentHandler.isIssueIgnored(
+            document,
+            start.line,
+            IssueType.Naming
+          )
+        ) {
+          // Skip this issue if it's ignored
+          return;
+        }
+
         const issue: CodeIssue = {
           type: IssueType.Naming,
           message: `${this.getKindName(kind)} name "${name}" is too long (${
@@ -171,6 +196,18 @@ export class NamingAnalyzer implements CodeAnalyzer {
         } else {
           start = document.positionAt(nodeStart);
           end = document.positionAt(nodeEnd);
+        }
+
+        // Check if this issue is ignored via comment
+        if (
+          IgnoreCommentHandler.isIssueIgnored(
+            document,
+            start.line,
+            IssueType.Naming
+          )
+        ) {
+          // Skip this issue if it's ignored
+          return;
         }
 
         const convention = this.getConventionForKind(kind);

@@ -1,4 +1,4 @@
-// src/extension.ts - update with new providers
+// src/extension.ts - update with ignore comments command
 import * as vscode from "vscode";
 import { registerDiagnostics } from "./providers/diagnosticProvider";
 import { registerCommands } from "./providers/commandProvider";
@@ -10,6 +10,7 @@ import { DocumentationViewProvider } from "./providers/documentationViewProvider
 import { IssueType } from "./models/codeIssue";
 import { debounce } from "./utils/debounce";
 import { StatusBarManager } from "./utils/statusBarManager";
+import { registerRemoveIgnoreCommentsCommand } from "./commands/removeIgnoreCommentsCommand";
 
 // Configuration for analysis debounce timeout
 const ANALYSIS_DEBOUNCE_MS = 500; // Delay analysis by 500ms after typing stops
@@ -55,6 +56,9 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Register commands
   registerCommands(context, analyzers);
+
+  // Register ignore comments commands
+  registerRemoveIgnoreCommentsCommand(context);
 
   // Register code action provider for quick fixes
   const cleanCodeActionProvider = vscode.languages.registerCodeActionsProvider(

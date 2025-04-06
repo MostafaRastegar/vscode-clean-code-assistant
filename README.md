@@ -72,6 +72,61 @@ See extension settings for the complete list of configuration options.
 * `Clean Code Assistant: Show Clean Code Documentation`: Open the documentation panel
 * `Clean Code Assistant: Refresh Dashboard`: Update the dashboard with the latest analysis
 
+
+# Ignoring Code Issues
+
+Clean Code Assistant provides a simple way to ignore specific code issues when they are intentionally written or cannot be refactored for valid reasons.
+
+## How to Ignore Issues
+
+You can ignore issues in your code by adding special comment directives:
+
+```typescript
+// clean-code-ignore: complexity
+function complexFunction() {
+  // This function has high complexity but we're intentionally ignoring it
+  // ...
+}
+
+// clean-code-ignore: naming
+const x = 10; // Short variable name is intentional here
+
+// clean-code-ignore: all
+class UserHandler { // This class intentionally ignores all clean code issues
+  // ...
+}
+```
+
+## Ignore Comment Format
+
+- `// clean-code-ignore: [issue-type]` - Ignores a specific issue type (complexity, naming, duplicate-code, solid-violation, anti-pattern)
+- `// clean-code-ignore: all` - Ignores all clean code issues for the code below
+
+## Quick Fixes
+
+For any reported issue, you can use Quick Fix (Ctrl+. / Cmd+.) to automatically add an ignore comment:
+
+- "Ignore this [type] issue" - Adds a specific ignore comment for that issue type
+- "Ignore all clean code issues for this line" - Adds a comment to ignore all issue types
+
+## Configuration
+
+You can customize ignore comments in settings:
+
+- `cleanCodeAssistant.enableIgnoreComments` - Enable or disable support for ignore comments
+- `cleanCodeAssistant.ignoreCommentFormat` - Format for ignore comments using the {type} placeholder
+- `cleanCodeAssistant.includeCommentDescriptions` - Whether to include descriptive text in ignore comments
+
+## Removing Ignore Comments
+
+To remove ignore comments:
+
+- Use "Clean Code: Remove ignore comments from current file" command for the current file
+- Use "Clean Code: Remove ignore comments from all files" command for the entire workspace
+
+These commands can be accessed from the Command Palette (Ctrl+Shift+P / Cmd+Shift+P).
+
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.

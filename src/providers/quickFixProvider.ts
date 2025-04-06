@@ -1,6 +1,7 @@
 // src/providers/quickFixProvider.ts
 import * as vscode from "vscode";
 import { IssueType } from "../models/codeIssue";
+import { IgnoreCommentHandler } from "../utils/ignoreUtils";
 
 /**
  * Provides code actions for fixing clean code issues
@@ -50,10 +51,17 @@ export class CleanCodeActionProvider implements vscode.CodeActionProvider {
         case IssueType.SolidViolation:
           this.addSolidViolationActions(document, diagnostic, codeActions);
           break;
+
+        case IssueType.AntiPattern:
+          this.addAntiPatternActions(document, diagnostic, codeActions);
+          break;
       }
 
       // Add documentation action for all issue types
       this.addDocumentationAction(diagnostic, codeActions);
+
+      // Add ignore comment actions for all issue types
+      this.addIgnoreActions(document, diagnostic, codeActions, issueType);
     }
 
     return codeActions;
@@ -80,28 +88,6 @@ export class CleanCodeActionProvider implements vscode.CodeActionProvider {
     extractFunctionAction.diagnostics = [diagnostic];
     extractFunctionAction.isPreferred = true;
     codeActions.push(extractFunctionAction);
-
-    // Add comment to suppress warning
-    const addCommentAction = new vscode.CodeAction(
-      "Add comment to suppress this warning",
-      vscode.CodeActionKind.QuickFix
-    );
-    addCommentAction.edit = new vscode.WorkspaceEdit();
-
-    // Get the line before the function
-    const lineBeforeRange = new vscode.Range(
-      new vscode.Position(diagnostic.range.start.line, 0),
-      new vscode.Position(diagnostic.range.start.line, 0)
-    );
-
-    addCommentAction.edit.insert(
-      document.uri,
-      lineBeforeRange.start,
-      "// clean-code-ignore: complexity\n"
-    );
-
-    addCommentAction.diagnostics = [diagnostic];
-    codeActions.push(addCommentAction);
   }
 
   /**
@@ -153,7 +139,6 @@ export class CleanCodeActionProvider implements vscode.CodeActionProvider {
   /**
    * Adds quick fixes for duplicate code issues
    */
-
   private addDuplicateCodeActions(
     document: vscode.TextDocument,
     diagnostic: vscode.Diagnostic,
@@ -289,6 +274,129 @@ class UserValidator {
       };
       injectDependencyAction.diagnostics = [diagnostic];
       codeActions.push(injectDependencyAction);
+    }
+  }
+
+  /**
+   * Adds quick fixes for anti-pattern issues
+   */
+  private addAntiPatternActions(
+    document: vscode.TextDocument,
+    diagnostic: vscode.Diagnostic,
+    codeActions: vscode.CodeAction[]
+  ): void {
+    // Add specific actions based on the anti-pattern type
+    if (diagnostic.message.includes("God Object")) {
+      const extractClassAction = new vscode.CodeAction(
+        "Extract part of this class to a new class",
+        vscode.CodeActionKind.QuickFix
+      );
+      extractClassAction.command = {
+        title: "Extract Class",
+        command: "clean-code-assistant.extractClass",
+        arguments: [document, diagnostic.range],
+      };
+      extractClassAction.diagnostics = [diagnostic];
+      codeActions.push(extractClassAction);
+    }
+
+    if (diagnostic.message.includes("Feature Envy")) {
+      const moveMethodAction = new vscode.CodeAction(
+        "Move method to more appropriate class",
+        vscode.CodeActionKind.QuickFix
+      );
+      moveMethodAction.command = {
+        title: "Extract Class",
+        command: "clean-code-assistant.extractClass",
+        arguments: [document, diagnostic.range],
+      };
+      moveMethodAction.diagnostics = [diagnostic];
+      codeActions.push(moveMethodAction);
+    }
+
+    if (diagnostic.message.includes("Long Parameter List")) {
+      const introParamObjectAction = new vscode.CodeAction(
+        "Introduce Parameter Object",
+        vscode.CodeActionKind.QuickFix
+      );
+      // This is a placeholder for future implementation
+      introParamObjectAction.command = {
+        title: "Extract Class",
+        command: "clean-code-assistant.extractClass",
+        arguments: [document, diagnostic.range],
+      };
+      introParamObjectAction.diagnostics = [diagnostic];
+      codeActions.push(introParamObjectAction);
+    }
+  }
+
+  /**
+   * Adds actions to ignore issues via comments
+   */
+  private addIgnoreActions(
+    document: vscode.TextDocument,
+    diagnostic: vscode.Diagnostic,
+    codeActions: vscode.CodeAction[],
+    issueType: IssueType
+  ): void {
+    // Add an action to suppress this specific issue type
+    const ignoreAction = new vscode.CodeAction(
+      `Ignore this ${this.getIssueTypeName(issueType)} issue`,
+      vscode.CodeActionKind.QuickFix
+    );
+    ignoreAction.edit = new vscode.WorkspaceEdit();
+
+    // Get the line before the issue
+    const lineBeforeRange = new vscode.Range(
+      new vscode.Position(diagnostic.range.start.line, 0),
+      new vscode.Position(diagnostic.range.start.line, 0)
+    );
+
+    // Add the ignore comment
+    ignoreAction.edit.insert(
+      document.uri,
+      lineBeforeRange.start,
+      `${IgnoreCommentHandler.getIgnoreComment(issueType)}\n`
+    );
+
+    ignoreAction.diagnostics = [diagnostic];
+    codeActions.push(ignoreAction);
+
+    // Add an action to suppress all issues
+    const ignoreAllAction = new vscode.CodeAction(
+      "Ignore all clean code issues for this line",
+      vscode.CodeActionKind.QuickFix
+    );
+    ignoreAllAction.edit = new vscode.WorkspaceEdit();
+
+    // Add the ignore all comment
+    ignoreAllAction.edit.insert(
+      document.uri,
+      lineBeforeRange.start,
+      `${IgnoreCommentHandler.getIgnoreAllComment()}\n`
+    );
+
+    ignoreAllAction.diagnostics = [diagnostic];
+    codeActions.push(ignoreAllAction);
+  }
+
+  /**
+   * Returns a user-friendly name for the issue type
+   */
+  private getIssueTypeName(issueType: IssueType): string {
+    switch (issueType) {
+      case IssueType.Complexity:
+        return "complexity";
+      case IssueType.Naming:
+        return "naming convention";
+      case IssueType.DuplicateCode:
+        return "duplicate code";
+      case IssueType.SolidViolation:
+        return "SOLID principle violation";
+      case IssueType.AntiPattern:
+        return "anti-pattern";
+      default:
+        return "clean code";
     }
   }
 

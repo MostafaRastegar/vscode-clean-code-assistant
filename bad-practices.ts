@@ -197,6 +197,7 @@ class Database {
 
 // Interface Segregation Principle violation - a large interface with multiple methods
 interface UserRepository {
+  // clean-code-ignore: solid-violation - This issue is intentionally ignored
   createUser(user: any): void;
   updateUser(user: any): void;
   deleteUser(id: string): void;
