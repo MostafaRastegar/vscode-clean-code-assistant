@@ -1,30 +1,54 @@
 // src/analyzers/solidPrinciplesAnalyzer.ts
 import * as vscode from "vscode";
 import * as ts from "typescript";
-import { CodeAnalyzer } from "./analyzerInterface";
+import { AnalyzerPriority, CodeAnalyzer } from "./analyzerInterface";
 import {
   AnalyzerResult,
   CodeIssue,
   IssueSeverity,
   IssueType,
 } from "../models/codeIssue";
+import { BlockInfo } from "../utils/cacheManager";
 
 export class SolidPrinciplesAnalyzer implements CodeAnalyzer {
   id = "solid-principles";
   name = "SOLID Principles Analyzer";
   description = "Analyzes code for violations of SOLID principles";
+  priority = AnalyzerPriority.Low; // Complex analysis
+  supportsBlockAnalysis = true; // Support for block-based analysis
 
-  async analyze(document: vscode.TextDocument): Promise<AnalyzerResult> {
+  async analyze(
+    document: vscode.TextDocument,
+    ast?: ts.SourceFile,
+    blockInfo?: BlockInfo
+  ): Promise<AnalyzerResult> {
     const issues: CodeIssue[] = [];
-    const content = document.getText();
 
-    // Parse the document
-    const sourceFile = ts.createSourceFile(
-      document.fileName,
-      content,
-      ts.ScriptTarget.Latest,
-      true
-    );
+    // Use provided AST or get it from ASTManager
+    let sourceFile = ast;
+    let lineOffset = 0;
+
+    // If analyzing a specific block, parse just that block
+    if (blockInfo) {
+      // Create a source file just for this block
+      sourceFile = ts.createSourceFile(
+        document.fileName + ".block",
+        blockInfo.content,
+        ts.ScriptTarget.Latest,
+        true
+      );
+
+      // Remember line offset for adjusting issue positions later
+      lineOffset = blockInfo.startLine;
+    } else if (!sourceFile) {
+      // If no block info and no AST, parse the whole document
+      sourceFile = ts.createSourceFile(
+        document.fileName,
+        document.getText(),
+        ts.ScriptTarget.Latest,
+        true
+      );
+    }
 
     // Check for Single Responsibility Principle violations
     this.checkSingleResponsibility(sourceFile, document, issues);

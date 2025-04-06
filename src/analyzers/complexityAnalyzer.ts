@@ -1,7 +1,7 @@
 // src/analyzers/complexityAnalyzer.ts
 import * as vscode from "vscode";
 import * as ts from "typescript";
-import { CodeAnalyzer } from "./analyzerInterface";
+import { CodeAnalyzer, AnalyzerPriority } from "./analyzerInterface";
 import {
   AnalyzerResult,
   CodeIssue,
@@ -9,30 +9,54 @@ import {
   IssueType,
 } from "../models/codeIssue";
 import { getFunctionInfo } from "../utils/astUtils";
+import { BlockInfo } from "../utils/cacheManager";
 
 export class ComplexityAnalyzer implements CodeAnalyzer {
   id = "complexity";
   name = "Complexity Analyzer";
   description = "Analyzes the cyclomatic complexity of functions and methods";
+  priority = AnalyzerPriority.High; // Relatively fast analyzer
+  supportsBlockAnalysis = true; // Support for block-based analysis
 
-  async analyze(document: vscode.TextDocument): Promise<AnalyzerResult> {
+  async analyze(
+    document: vscode.TextDocument,
+    ast?: ts.SourceFile,
+    blockInfo?: BlockInfo
+  ): Promise<AnalyzerResult> {
     const issues: CodeIssue[] = [];
-    const content = document.getText();
 
-    // Parse the document
-    const sourceFile = ts.createSourceFile(
-      document.fileName,
-      content,
-      ts.ScriptTarget.Latest,
-      true
-    );
+    // Use provided AST or get it from ASTManager
+    let sourceFile = ast;
+    let lineOffset = 0;
+
+    // If analyzing a specific block, parse just that block
+    if (blockInfo) {
+      // Create a source file just for this block
+      sourceFile = ts.createSourceFile(
+        document.fileName + ".block",
+        blockInfo.content,
+        ts.ScriptTarget.Latest,
+        true
+      );
+
+      // Remember line offset for adjusting issue positions later
+      lineOffset = blockInfo.startLine;
+    } else if (!sourceFile) {
+      // If no block info and no AST, parse the whole document
+      sourceFile = ts.createSourceFile(
+        document.fileName,
+        document.getText(),
+        ts.ScriptTarget.Latest,
+        true
+      );
+    }
 
     // Get config
     const config = vscode.workspace.getConfiguration("cleanCodeAssistant");
     const maxComplexity = config.get<number>("maxComplexity", 10);
 
     // Find all functions in the code
-    const functions = this.findFunctions(sourceFile);
+    const functions = this.findFunctions(sourceFile!);
 
     // Analyze each function for complexity
     functions.forEach((func) => {
@@ -40,13 +64,34 @@ export class ComplexityAnalyzer implements CodeAnalyzer {
 
       // If complexity exceeds the limit, report issue
       if (complexity > maxComplexity) {
-        const start = document.positionAt(node.getStart(sourceFile));
-        const end = document.positionAt(node.getEnd());
+        // Get positions in the source file
+        const nodeStart = node.getStart(sourceFile!);
+        const nodeEnd = node.getEnd();
+
+        // Convert to document positions, adjusting for block position if needed
+        const start = document.positionAt(
+          blockInfo
+            ? this.getGlobalOffset(document, nodeStart, blockInfo)
+            : nodeStart
+        );
+        const end = document.positionAt(
+          blockInfo
+            ? this.getGlobalOffset(document, nodeEnd, blockInfo)
+            : nodeEnd
+        );
+
+        // Adjust line numbers if analyzing a block
+        const adjustedStart = blockInfo
+          ? new vscode.Position(start.line + lineOffset, start.character)
+          : start;
+        const adjustedEnd = blockInfo
+          ? new vscode.Position(end.line + lineOffset, end.character)
+          : end;
 
         const issue: CodeIssue = {
           type: IssueType.Complexity,
           message: `Function "${name}" has a complexity of ${complexity}, which exceeds the maximum of ${maxComplexity}`,
-          range: new vscode.Range(start, end),
+          range: new vscode.Range(adjustedStart, adjustedEnd),
           severity: IssueSeverity.Warning,
           suggestions: [
             "Break down the function into smaller, more focused functions",
@@ -61,6 +106,23 @@ export class ComplexityAnalyzer implements CodeAnalyzer {
     });
 
     return { issues };
+  }
+
+  /**
+   * Converts a position in a block to a global document offset
+   */
+  private getGlobalOffset(
+    document: vscode.TextDocument,
+    localOffset: number,
+    blockInfo: BlockInfo
+  ): number {
+    // Calculate the offset at the beginning of the block
+    let blockStartOffset = 0;
+    for (let i = 0; i < blockInfo.startLine; i++) {
+      blockStartOffset += document.lineAt(i).text.length + 1; // +1 for newline
+    }
+
+    return blockStartOffset + localOffset;
   }
 
   isEnabled(): boolean {

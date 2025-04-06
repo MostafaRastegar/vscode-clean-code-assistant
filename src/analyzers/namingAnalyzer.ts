@@ -1,31 +1,55 @@
 // src/analyzers/namingAnalyzer.ts
 import * as vscode from "vscode";
 import * as ts from "typescript";
-import { CodeAnalyzer } from "./analyzerInterface";
+import { CodeAnalyzer, AnalyzerPriority } from "./analyzerInterface";
 import {
   AnalyzerResult,
   CodeIssue,
   IssueSeverity,
   IssueType,
 } from "../models/codeIssue";
+import { BlockInfo } from "../utils/cacheManager";
 
 export class NamingAnalyzer implements CodeAnalyzer {
   id = "naming";
   name = "Naming Analyzer";
   description =
     "Analyzes variable, function, and class names for clean code principles";
+  priority = AnalyzerPriority.High; // Quick to execute
+  supportsBlockAnalysis = true; // Support for block-based analysis
 
-  async analyze(document: vscode.TextDocument): Promise<AnalyzerResult> {
+  async analyze(
+    document: vscode.TextDocument,
+    ast?: ts.SourceFile,
+    blockInfo?: BlockInfo
+  ): Promise<AnalyzerResult> {
     const issues: CodeIssue[] = [];
-    const content = document.getText();
 
-    // Parse the document
-    const sourceFile = ts.createSourceFile(
-      document.fileName,
-      content,
-      ts.ScriptTarget.Latest,
-      true
-    );
+    // Use provided AST or get it from ASTManager
+    let sourceFile = ast;
+    let lineOffset = 0;
+
+    // If analyzing a specific block, parse just that block
+    if (blockInfo) {
+      // Create a source file just for this block
+      sourceFile = ts.createSourceFile(
+        document.fileName + ".block",
+        blockInfo.content,
+        ts.ScriptTarget.Latest,
+        true
+      );
+
+      // Remember line offset for adjusting issue positions later
+      lineOffset = blockInfo.startLine;
+    } else if (!sourceFile) {
+      // If no block info and no AST, parse the whole document
+      sourceFile = ts.createSourceFile(
+        document.fileName,
+        document.getText(),
+        ts.ScriptTarget.Latest,
+        true
+      );
+    }
 
     // Get config
     const config = vscode.workspace.getConfiguration("cleanCodeAssistant");
@@ -33,20 +57,41 @@ export class NamingAnalyzer implements CodeAnalyzer {
     const maxNameLength = config.get<number>("maxNameLength", 30);
 
     // Search for all identifiers in the code
-    this.findIdentifiers(sourceFile).forEach((identifier) => {
+    this.findIdentifiers(sourceFile!).forEach((identifier) => {
       const { node, name, kind } = identifier;
 
       // Check if the name is too short
       if (name.length < minNameLength && !this.isExemptFromMinLength(name)) {
-        const start = document.positionAt(node.getStart(sourceFile));
-        const end = document.positionAt(node.getEnd());
+        // Get positions in the source file
+        const nodeStart = node.getStart(sourceFile!);
+        const nodeEnd = node.getEnd();
+
+        // Convert to document positions, adjusting for block position if needed
+        const start = document.positionAt(
+          blockInfo
+            ? this.getGlobalOffset(document, nodeStart, blockInfo)
+            : nodeStart
+        );
+        const end = document.positionAt(
+          blockInfo
+            ? this.getGlobalOffset(document, nodeEnd, blockInfo)
+            : nodeEnd
+        );
+
+        // Adjust line numbers if analyzing a block
+        const adjustedStart = blockInfo
+          ? new vscode.Position(start.line + lineOffset, start.character)
+          : start;
+        const adjustedEnd = blockInfo
+          ? new vscode.Position(end.line + lineOffset, end.character)
+          : end;
 
         const issue: CodeIssue = {
           type: IssueType.Naming,
           message: `${this.getKindName(kind)} name "${name}" is too short (${
             name.length
           }). Names should be at least ${minNameLength} characters.`,
-          range: new vscode.Range(start, end),
+          range: new vscode.Range(adjustedStart, adjustedEnd),
           severity: IssueSeverity.Warning,
           suggestions: [
             "Use descriptive names that convey meaning and intent",
@@ -59,15 +104,36 @@ export class NamingAnalyzer implements CodeAnalyzer {
 
       // Check if the name is too long
       if (name.length > maxNameLength) {
-        const start = document.positionAt(node.getStart(sourceFile));
-        const end = document.positionAt(node.getEnd());
+        // Get positions in the source file
+        const nodeStart = node.getStart(sourceFile!);
+        const nodeEnd = node.getEnd();
+
+        // Convert to document positions, adjusting for block position if needed
+        const start = document.positionAt(
+          blockInfo
+            ? this.getGlobalOffset(document, nodeStart, blockInfo)
+            : nodeStart
+        );
+        const end = document.positionAt(
+          blockInfo
+            ? this.getGlobalOffset(document, nodeEnd, blockInfo)
+            : nodeEnd
+        );
+
+        // Adjust line numbers if analyzing a block
+        const adjustedStart = blockInfo
+          ? new vscode.Position(start.line + lineOffset, start.character)
+          : start;
+        const adjustedEnd = blockInfo
+          ? new vscode.Position(end.line + lineOffset, end.character)
+          : end;
 
         const issue: CodeIssue = {
           type: IssueType.Naming,
           message: `${this.getKindName(kind)} name "${name}" is too long (${
             name.length
           }). Names should be no more than ${maxNameLength} characters.`,
-          range: new vscode.Range(start, end),
+          range: new vscode.Range(adjustedStart, adjustedEnd),
           severity: IssueSeverity.Information,
           suggestions: [
             "Use shorter but still descriptive names",
@@ -80,8 +146,29 @@ export class NamingAnalyzer implements CodeAnalyzer {
 
       // Check if name follows naming convention based on type
       if (!this.followsNamingConvention(name, kind)) {
-        const start = document.positionAt(node.getStart(sourceFile));
-        const end = document.positionAt(node.getEnd());
+        // Get positions in the source file
+        const nodeStart = node.getStart(sourceFile!);
+        const nodeEnd = node.getEnd();
+
+        // Convert to document positions, adjusting for block position if needed
+        const start = document.positionAt(
+          blockInfo
+            ? this.getGlobalOffset(document, nodeStart, blockInfo)
+            : nodeStart
+        );
+        const end = document.positionAt(
+          blockInfo
+            ? this.getGlobalOffset(document, nodeEnd, blockInfo)
+            : nodeEnd
+        );
+
+        // Adjust line numbers if analyzing a block
+        const adjustedStart = blockInfo
+          ? new vscode.Position(start.line + lineOffset, start.character)
+          : start;
+        const adjustedEnd = blockInfo
+          ? new vscode.Position(end.line + lineOffset, end.character)
+          : end;
 
         const convention = this.getConventionForKind(kind);
 
@@ -90,7 +177,7 @@ export class NamingAnalyzer implements CodeAnalyzer {
           message: `${this.getKindName(
             kind
           )} name "${name}" does not follow the ${convention} naming convention.`,
-          range: new vscode.Range(start, end),
+          range: new vscode.Range(adjustedStart, adjustedEnd),
           severity: IssueSeverity.Information,
           suggestions: [
             `Use ${convention} for ${this.getKindName(kind)} names`,
@@ -103,6 +190,23 @@ export class NamingAnalyzer implements CodeAnalyzer {
     });
 
     return { issues };
+  }
+
+  /**
+   * Converts a position in a block to a global document offset
+   */
+  private getGlobalOffset(
+    document: vscode.TextDocument,
+    localOffset: number,
+    blockInfo: BlockInfo
+  ): number {
+    // Calculate the offset at the beginning of the block
+    let blockStartOffset = 0;
+    for (let i = 0; i < blockInfo.startLine; i++) {
+      blockStartOffset += document.lineAt(i).text.length + 1; // +1 for newline
+    }
+
+    return blockStartOffset + localOffset;
   }
 
   isEnabled(): boolean {
@@ -326,12 +430,12 @@ export class NamingAnalyzer implements CodeAnalyzer {
   }
 
   private toPascalCase(str: string): string {
-    const withSpaces = str.replace(/([A-Z])/g, ' $1');
-    
+    const withSpaces = str.replace(/([A-Z])/g, " $1");
+
     return withSpaces
       .replace(/[^a-zA-Z0-9]/g, " ")
       .split(" ")
-      .filter(word => word.length > 0)
+      .filter((word) => word.length > 0)
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join("");
   }

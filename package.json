@@ -1,6 +1,6 @@
 {
   "name": "vscode-clean-code-assistant",
-  "displayName": "vscode-clean-code-assistant",
+  "displayName": "clean-code-assistant",
   "description": "An extension that analyzes code and provides clean code suggestions",
   "version": "0.0.6",
   "publisher": "MostafaRastegar",
@@ -113,25 +113,49 @@
       {
         "command": "clean-code-assistant.applyDependencyInjection",
         "title": "Apply Dependency Injection"
+      },
+      {
+        "command": "clean-code-assistant.analyzeCurrentDocument",
+        "title": "Analyze Current Document for Clean Code Issues"
       }
     ],
     "configuration": {
       "title": "Clean Code Assistant",
       "properties": {
+        "cleanCodeAssistant.analysisMode": {
+          "type": "string",
+          "default": "onChange",
+          "enum": [
+            "onChange",
+            "onSave",
+            "manual"
+          ],
+          "enumDescriptions": [
+            "Analyze code automatically when it changes (with debouncing)",
+            "Analyze code only when a file is saved",
+            "Analyze code only when manually triggered"
+          ],
+          "description": "When to trigger code analysis"
+        },
+        "cleanCodeAssistant.analyzeOnActivation": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to analyze open documents when the extension is activated"
+        },
         "cleanCodeAssistant.enableComplexityAnalyzer": {
           "type": "boolean",
           "default": true,
           "description": "Enable or disable complexity analysis"
         },
-        "cleanCodeAssistant.maxComplexity": {
-          "type": "number",
-          "default": 10,
-          "description": "Maximum cyclomatic complexity allowed before warning"
-        },
         "cleanCodeAssistant.enableNamingAnalyzer": {
           "type": "boolean",
           "default": true,
           "description": "Enable or disable naming analysis"
+        },
+        "cleanCodeAssistant.maxComplexity": {
+          "type": "number",
+          "default": 10,
+          "description": "Maximum cyclomatic complexity allowed before warning"
         },
         "cleanCodeAssistant.minNameLength": {
           "type": "number",

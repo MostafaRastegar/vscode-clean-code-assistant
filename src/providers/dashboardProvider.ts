@@ -144,6 +144,7 @@ export class DashboardProvider implements vscode.WebviewViewProvider {
     const result: Array<{ uri: vscode.Uri; diagnostic: vscode.Diagnostic }> =
       [];
 
+    // Get all diagnostics from all files
     const diagnosticCollection = vscode.languages.getDiagnostics();
 
     for (const [uri, diagnostics] of diagnosticCollection) {
@@ -156,7 +157,6 @@ export class DashboardProvider implements vscode.WebviewViewProvider {
 
     return result;
   }
-
   /**
    * Generates HTML for the webview
    */
