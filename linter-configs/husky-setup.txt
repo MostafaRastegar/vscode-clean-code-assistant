@@ -1,0 +1,14 @@
+# .husky/pre-commit
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run ESLint to check code quality
+echo "🔍 Running ESLint to check clean code rules..."
+npm run lint:fix
+
+# Run TypeScript compiler to check types
+echo "🔍 Checking TypeScript types..."
+npm run type-check
+
+# If we reached this point, all checks passed
+echo "✅ Clean code checks passed!"

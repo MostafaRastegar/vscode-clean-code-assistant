@@ -8,6 +8,7 @@ src/**
 .yarnrc
 webpack.config.js
 vsc-extension-quickstart.md
+linter-configs/**
 **/tsconfig.json
 **/eslint.config.mjs
 **/*.map

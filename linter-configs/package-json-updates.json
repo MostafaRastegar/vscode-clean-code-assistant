@@ -1,0 +1,49 @@
+{
+  "name": "vscode-clean-code-assistant",
+  "displayName": "clean-code-assistant",
+  "description": "An extension that analyzes code and provides clean code suggestions",
+  "version": "0.1.1",
+  "publisher": "MostafaRastegar",
+  "author": "Mostafa Rastegar <m.rastegar991@gmail.com>",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.54.0"
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "lint": "eslint src --ext .ts,.tsx",
+    "lint:fix": "eslint src --ext .ts,.tsx --fix",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
+    "prepare": "husky install",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.54.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "20.x",
+    "@typescript-eslint/eslint-plugin": "^8.17.0",
+    "@typescript-eslint/parser": "^8.17.0",
+    "eslint": "^9.16.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-jsdoc": "^48.0.6",
+    "eslint-plugin-prefer-arrow": "^1.2.3",
+    "eslint-plugin-sonarjs": "^0.24.0",
+    "eslint-plugin-unicorn": "^51.0.1",
+    "husky": "^9.0.11",
+    "prettier": "^3.2.5",
+    "typescript": "^5.7.2",
+    "ts-loader": "^9.5.1",
+    "webpack": "^5.95.0",
+    "webpack-cli": "^5.1.4",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.1"
+  }
+}
