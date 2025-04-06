@@ -69,29 +69,30 @@ export class ComplexityAnalyzer implements CodeAnalyzer {
         const nodeEnd = node.getEnd();
 
         // Convert to document positions, adjusting for block position if needed
-        const start = document.positionAt(
-          blockInfo
-            ? this.getGlobalOffset(document, nodeStart, blockInfo)
-            : nodeStart
-        );
-        const end = document.positionAt(
-          blockInfo
-            ? this.getGlobalOffset(document, nodeEnd, blockInfo)
-            : nodeEnd
-        );
+        let start, end;
 
-        // Adjust line numbers if analyzing a block
-        const adjustedStart = blockInfo
-          ? new vscode.Position(start.line + lineOffset, start.character)
-          : start;
-        const adjustedEnd = blockInfo
-          ? new vscode.Position(end.line + lineOffset, end.character)
-          : end;
+        if (blockInfo) {
+          // We'll use the lineOffset approach since it's simpler
+          const localStart = document.positionAt(nodeStart);
+          const localEnd = document.positionAt(nodeEnd);
+
+          start = new vscode.Position(
+            localStart.line + lineOffset,
+            localStart.character
+          );
+          end = new vscode.Position(
+            localEnd.line + lineOffset,
+            localEnd.character
+          );
+        } else {
+          start = document.positionAt(nodeStart);
+          end = document.positionAt(nodeEnd);
+        }
 
         const issue: CodeIssue = {
           type: IssueType.Complexity,
           message: `Function "${name}" has a complexity of ${complexity}, which exceeds the maximum of ${maxComplexity}`,
-          range: new vscode.Range(adjustedStart, adjustedEnd),
+          range: new vscode.Range(start, end),
           severity: IssueSeverity.Warning,
           suggestions: [
             "Break down the function into smaller, more focused functions",
@@ -106,23 +107,6 @@ export class ComplexityAnalyzer implements CodeAnalyzer {
     });
 
     return { issues };
-  }
-
-  /**
-   * Converts a position in a block to a global document offset
-   */
-  private getGlobalOffset(
-    document: vscode.TextDocument,
-    localOffset: number,
-    blockInfo: BlockInfo
-  ): number {
-    // Calculate the offset at the beginning of the block
-    let blockStartOffset = 0;
-    for (let i = 0; i < blockInfo.startLine; i++) {
-      blockStartOffset += document.lineAt(i).text.length + 1; // +1 for newline
-    }
-
-    return blockStartOffset + localOffset;
   }
 
   isEnabled(): boolean {

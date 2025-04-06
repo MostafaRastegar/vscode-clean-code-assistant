@@ -2,7 +2,7 @@
   "name": "vscode-clean-code-assistant",
   "displayName": "clean-code-assistant",
   "description": "An extension that analyzes code and provides clean code suggestions",
-  "version": "0.0.6",
+  "version": "0.0.9",
   "publisher": "MostafaRastegar",
   "author": "Mostafa Rastegar <m.rastegar991@gmail.com>",
   "license": "MIT",

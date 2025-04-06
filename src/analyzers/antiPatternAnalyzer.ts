@@ -54,12 +54,54 @@ export class AntiPatternAnalyzer implements CodeAnalyzer {
     const config = vscode.workspace.getConfiguration("cleanCodeAssistant");
 
     // Check for different anti-patterns
-    this.checkGodObject(sourceFile, document, issues, config);
-    this.checkFeatureEnvy(sourceFile, document, issues, config);
-    this.checkLongParameterList(sourceFile, document, issues, config);
-    this.checkPrimitiveObsession(sourceFile, document, issues, config);
-    this.checkShotgunSurgery(sourceFile, document, issues, config);
-    this.checkDataClump(sourceFile, document, issues, config);
+    this.checkGodObject(
+      sourceFile,
+      document,
+      issues,
+      config,
+      lineOffset,
+      blockInfo
+    );
+    this.checkFeatureEnvy(
+      sourceFile,
+      document,
+      issues,
+      config,
+      lineOffset,
+      blockInfo
+    );
+    this.checkLongParameterList(
+      sourceFile,
+      document,
+      issues,
+      config,
+      lineOffset,
+      blockInfo
+    );
+    this.checkPrimitiveObsession(
+      sourceFile,
+      document,
+      issues,
+      config,
+      lineOffset,
+      blockInfo
+    );
+    this.checkShotgunSurgery(
+      sourceFile,
+      document,
+      issues,
+      config,
+      lineOffset,
+      blockInfo
+    );
+    this.checkDataClump(
+      sourceFile,
+      document,
+      issues,
+      config,
+      lineOffset,
+      blockInfo
+    );
 
     return { issues };
   }
@@ -76,7 +118,9 @@ export class AntiPatternAnalyzer implements CodeAnalyzer {
     sourceFile: ts.SourceFile,
     document: vscode.TextDocument,
     issues: CodeIssue[],
-    config: vscode.WorkspaceConfiguration
+    config: vscode.WorkspaceConfiguration,
+    lineOffset: number = 0,
+    blockInfo?: BlockInfo
   ): void {
     const maxClassSize = config.get<number>("maxClassSize", 200);
     const maxProperties = config.get<number>("maxClassProperties", 15);
@@ -104,8 +148,28 @@ export class AntiPatternAnalyzer implements CodeAnalyzer {
 
         // Check if class is too large
         if (linesOfCode > maxClassSize) {
-          const start = document.positionAt(node.getStart(sourceFile));
-          const end = document.positionAt(node.name.getEnd());
+          const nodeStart = node.getStart(sourceFile);
+          const nodeEnd = node.name.getEnd();
+
+          // FIXED: Simplified position calculation
+          let start, end;
+
+          if (blockInfo) {
+            const localStart = document.positionAt(nodeStart);
+            const localEnd = document.positionAt(nodeEnd);
+
+            start = new vscode.Position(
+              localStart.line + lineOffset,
+              localStart.character
+            );
+            end = new vscode.Position(
+              localEnd.line + lineOffset,
+              localEnd.character
+            );
+          } else {
+            start = document.positionAt(nodeStart);
+            end = document.positionAt(nodeEnd);
+          }
 
           const issue: CodeIssue = {
             type: IssueType.AntiPattern,
@@ -125,8 +189,28 @@ export class AntiPatternAnalyzer implements CodeAnalyzer {
 
         // Check if class has too many properties
         if (properties.length > maxProperties) {
-          const start = document.positionAt(node.getStart(sourceFile));
-          const end = document.positionAt(node.name.getEnd());
+          const nodeStart = node.getStart(sourceFile);
+          const nodeEnd = node.name.getEnd();
+
+          // FIXED: Simplified position calculation
+          let start, end;
+
+          if (blockInfo) {
+            const localStart = document.positionAt(nodeStart);
+            const localEnd = document.positionAt(nodeEnd);
+
+            start = new vscode.Position(
+              localStart.line + lineOffset,
+              localStart.character
+            );
+            end = new vscode.Position(
+              localEnd.line + lineOffset,
+              localEnd.character
+            );
+          } else {
+            start = document.positionAt(nodeStart);
+            end = document.positionAt(nodeEnd);
+          }
 
           const issue: CodeIssue = {
             type: IssueType.AntiPattern,
@@ -157,7 +241,9 @@ export class AntiPatternAnalyzer implements CodeAnalyzer {
     sourceFile: ts.SourceFile,
     document: vscode.TextDocument,
     issues: CodeIssue[],
-    config: vscode.WorkspaceConfiguration
+    config: vscode.WorkspaceConfiguration,
+    lineOffset: number = 0,
+    blockInfo?: BlockInfo
   ): void {
     const featureEnvyThreshold = config.get<number>("featureEnvyThreshold", 3);
 
@@ -251,8 +337,28 @@ export class AntiPatternAnalyzer implements CodeAnalyzer {
         // Check if method accesses external properties more than own properties
         for (const [objName, count] of accessedProps.entries()) {
           if (count > featureEnvyThreshold && count > ownPropsAccessed) {
-            const start = document.positionAt(node.getStart(sourceFile));
-            const end = document.positionAt(node.name.getEnd());
+            const nodeStart = node.getStart(sourceFile);
+            const nodeEnd = node.name.getEnd();
+
+            // FIXED: Simplified position calculation
+            let start, end;
+
+            if (blockInfo) {
+              const localStart = document.positionAt(nodeStart);
+              const localEnd = document.positionAt(nodeEnd);
+
+              start = new vscode.Position(
+                localStart.line + lineOffset,
+                localStart.character
+              );
+              end = new vscode.Position(
+                localEnd.line + lineOffset,
+                localEnd.character
+              );
+            } else {
+              start = document.positionAt(nodeStart);
+              end = document.positionAt(nodeEnd);
+            }
 
             const issue: CodeIssue = {
               type: IssueType.AntiPattern,
@@ -285,7 +391,9 @@ export class AntiPatternAnalyzer implements CodeAnalyzer {
     sourceFile: ts.SourceFile,
     document: vscode.TextDocument,
     issues: CodeIssue[],
-    config: vscode.WorkspaceConfiguration
+    config: vscode.WorkspaceConfiguration,
+    lineOffset: number = 0,
+    blockInfo?: BlockInfo
   ): void {
     const maxParameters = config.get<number>("maxParameterCount", 4);
 
@@ -300,10 +408,30 @@ export class AntiPatternAnalyzer implements CodeAnalyzer {
           functionName = node.name.text;
         }
 
-        const start = document.positionAt(node.getStart(sourceFile));
-        const end = document.positionAt(
-          node.name ? node.name.getEnd() : node.getStart(sourceFile) + 8
-        );
+        const nodeStart = node.getStart(sourceFile);
+        const nodeEnd = node.name
+          ? node.name.getEnd()
+          : node.getStart(sourceFile) + 8;
+
+        // FIXED: Simplified position calculation
+        let start, end;
+
+        if (blockInfo) {
+          const localStart = document.positionAt(nodeStart);
+          const localEnd = document.positionAt(nodeEnd);
+
+          start = new vscode.Position(
+            localStart.line + lineOffset,
+            localStart.character
+          );
+          end = new vscode.Position(
+            localEnd.line + lineOffset,
+            localEnd.character
+          );
+        } else {
+          start = document.positionAt(nodeStart);
+          end = document.positionAt(nodeEnd);
+        }
 
         const issue: CodeIssue = {
           type: IssueType.AntiPattern,
@@ -334,7 +462,9 @@ export class AntiPatternAnalyzer implements CodeAnalyzer {
     sourceFile: ts.SourceFile,
     document: vscode.TextDocument,
     issues: CodeIssue[],
-    config: vscode.WorkspaceConfiguration
+    config: vscode.WorkspaceConfiguration,
+    lineOffset: number = 0,
+    blockInfo?: BlockInfo
   ): void {
     // Detect common primitive types that often represent domain concepts
     const primitivePatterns = [
@@ -381,8 +511,28 @@ export class AntiPatternAnalyzer implements CodeAnalyzer {
         if (isPrimitive || !node.type) {
           for (const { pattern, suggestion } of primitivePatterns) {
             if (pattern.test(variableName)) {
-              const start = document.positionAt(node.getStart(sourceFile));
-              const end = document.positionAt(node.name.getEnd());
+              const nodeStart = node.getStart(sourceFile);
+              const nodeEnd = node.name.getEnd();
+
+              // FIXED: Simplified position calculation
+              let start, end;
+
+              if (blockInfo) {
+                const localStart = document.positionAt(nodeStart);
+                const localEnd = document.positionAt(nodeEnd);
+
+                start = new vscode.Position(
+                  localStart.line + lineOffset,
+                  localStart.character
+                );
+                end = new vscode.Position(
+                  localEnd.line + lineOffset,
+                  localEnd.character
+                );
+              } else {
+                start = document.positionAt(nodeStart);
+                end = document.positionAt(nodeEnd);
+              }
 
               const issue: CodeIssue = {
                 type: IssueType.AntiPattern,
@@ -437,8 +587,28 @@ export class AntiPatternAnalyzer implements CodeAnalyzer {
             if (isPrimitive) {
               for (const { pattern, suggestion } of primitivePatterns) {
                 if (pattern.test(paramName)) {
-                  const start = document.positionAt(param.getStart(sourceFile));
-                  const end = document.positionAt(param.name.getEnd());
+                  const nodeStart = param.getStart(sourceFile);
+                  const nodeEnd = param.name.getEnd();
+
+                  // FIXED: Simplified position calculation
+                  let start, end;
+
+                  if (blockInfo) {
+                    const localStart = document.positionAt(nodeStart);
+                    const localEnd = document.positionAt(nodeEnd);
+
+                    start = new vscode.Position(
+                      localStart.line + lineOffset,
+                      localStart.character
+                    );
+                    end = new vscode.Position(
+                      localEnd.line + lineOffset,
+                      localEnd.character
+                    );
+                  } else {
+                    start = document.positionAt(nodeStart);
+                    end = document.positionAt(nodeEnd);
+                  }
 
                   const issue: CodeIssue = {
                     type: IssueType.AntiPattern,
@@ -474,7 +644,9 @@ export class AntiPatternAnalyzer implements CodeAnalyzer {
     sourceFile: ts.SourceFile,
     document: vscode.TextDocument,
     issues: CodeIssue[],
-    config: vscode.WorkspaceConfiguration
+    config: vscode.WorkspaceConfiguration,
+    lineOffset: number = 0,
+    blockInfo?: BlockInfo
   ): void {
     // This is a simplified version - in a real extension, this would require
     // cross-file analysis and codebase-wide understanding
@@ -549,8 +721,28 @@ export class AntiPatternAnalyzer implements CodeAnalyzer {
         if (functionContainmentMap.size >= 2) {
           // Report issue on one of the occurrences
           const node = locations[0];
-          const start = document.positionAt(node.getStart(sourceFile));
-          const end = document.positionAt(node.getEnd());
+          const nodeStart = node.getStart(sourceFile);
+          const nodeEnd = node.getEnd();
+
+          // FIXED: Simplified position calculation
+          let start, end;
+
+          if (blockInfo) {
+            const localStart = document.positionAt(nodeStart);
+            const localEnd = document.positionAt(nodeEnd);
+
+            start = new vscode.Position(
+              localStart.line + lineOffset,
+              localStart.character
+            );
+            end = new vscode.Position(
+              localEnd.line + lineOffset,
+              localEnd.character
+            );
+          } else {
+            start = document.positionAt(nodeStart);
+            end = document.positionAt(nodeEnd);
+          }
 
           const functionList = Array.from(functionContainmentMap.keys()).join(
             ", "
@@ -586,7 +778,9 @@ export class AntiPatternAnalyzer implements CodeAnalyzer {
     sourceFile: ts.SourceFile,
     document: vscode.TextDocument,
     issues: CodeIssue[],
-    config: vscode.WorkspaceConfiguration
+    config: vscode.WorkspaceConfiguration,
+    lineOffset: number = 0,
+    blockInfo?: BlockInfo
   ): void {
     const minClumpSize = config.get<number>("minDataClumpSize", 3);
 
@@ -639,8 +833,28 @@ export class AntiPatternAnalyzer implements CodeAnalyzer {
       { count, methods, node },
     ] of parameterGroups.entries()) {
       if (count >= 2 && new Set(methods).size >= 2) {
-        const start = document.positionAt(node.getStart(sourceFile));
-        const end = document.positionAt(node.getEnd());
+        const nodeStart = node.getStart(sourceFile);
+        const nodeEnd = node.getEnd();
+
+        // FIXED: Simplified position calculation
+        let start, end;
+
+        if (blockInfo) {
+          const localStart = document.positionAt(nodeStart);
+          const localEnd = document.positionAt(nodeEnd);
+
+          start = new vscode.Position(
+            localStart.line + lineOffset,
+            localStart.character
+          );
+          end = new vscode.Position(
+            localEnd.line + lineOffset,
+            localEnd.character
+          );
+        } else {
+          start = document.positionAt(nodeStart);
+          end = document.positionAt(nodeEnd);
+        }
 
         const paramList = groupKey.split(",").join(", ");
 

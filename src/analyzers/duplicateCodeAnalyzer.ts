@@ -50,19 +50,23 @@ export class DuplicateCodeAnalyzer implements CodeAnalyzer {
       for (let i = 0; i < blocks.length; i++) {
         const block = blocks[i];
 
-        // Adjust for block analysis if needed
-        const adjustedStartLine = blockInfo
-          ? block.startLine + lineOffset
-          : block.startLine;
-        const adjustedEndLine = blockInfo
-          ? block.endLine + lineOffset
-          : block.endLine;
+        // FIXED: Standardize position adjustment
+        let startLine, endLine;
+
+        if (blockInfo) {
+          // Use a single adjustment approach consistently
+          startLine = block.startLine + lineOffset;
+          endLine = block.endLine + lineOffset;
+        } else {
+          startLine = block.startLine;
+          endLine = block.endLine;
+        }
 
         const range = new vscode.Range(
-          adjustedStartLine,
+          startLine,
           0,
-          adjustedEndLine,
-          document.lineAt(adjustedEndLine).text.length
+          endLine,
+          document.lineAt(endLine).text.length
         );
 
         const issue: CodeIssue = {

@@ -6,7 +6,6 @@ let User = {
   email: "john@example.com",
 };
 
-// Very short and ambiguous names
 function calc(a: number, b: number, t: string): number {
   let r = 0;
 

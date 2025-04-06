@@ -66,32 +66,33 @@ export class NamingAnalyzer implements CodeAnalyzer {
         const nodeStart = node.getStart(sourceFile!);
         const nodeEnd = node.getEnd();
 
-        // Convert to document positions, adjusting for block position if needed
-        const start = document.positionAt(
-          blockInfo
-            ? this.getGlobalOffset(document, nodeStart, blockInfo)
-            : nodeStart
-        );
-        const end = document.positionAt(
-          blockInfo
-            ? this.getGlobalOffset(document, nodeEnd, blockInfo)
-            : nodeEnd
-        );
+        // FIXED: Simplify position adjustment for block analysis
+        let start, end;
 
-        // Adjust line numbers if analyzing a block
-        const adjustedStart = blockInfo
-          ? new vscode.Position(start.line + lineOffset, start.character)
-          : start;
-        const adjustedEnd = blockInfo
-          ? new vscode.Position(end.line + lineOffset, end.character)
-          : end;
+        if (blockInfo) {
+          // Use a single adjustment method with lineOffset
+          const localStart = document.positionAt(nodeStart);
+          const localEnd = document.positionAt(nodeEnd);
+
+          start = new vscode.Position(
+            localStart.line + lineOffset,
+            localStart.character
+          );
+          end = new vscode.Position(
+            localEnd.line + lineOffset,
+            localEnd.character
+          );
+        } else {
+          start = document.positionAt(nodeStart);
+          end = document.positionAt(nodeEnd);
+        }
 
         const issue: CodeIssue = {
           type: IssueType.Naming,
           message: `${this.getKindName(kind)} name "${name}" is too short (${
             name.length
           }). Names should be at least ${minNameLength} characters.`,
-          range: new vscode.Range(adjustedStart, adjustedEnd),
+          range: new vscode.Range(start, end),
           severity: IssueSeverity.Warning,
           suggestions: [
             "Use descriptive names that convey meaning and intent",
@@ -108,32 +109,33 @@ export class NamingAnalyzer implements CodeAnalyzer {
         const nodeStart = node.getStart(sourceFile!);
         const nodeEnd = node.getEnd();
 
-        // Convert to document positions, adjusting for block position if needed
-        const start = document.positionAt(
-          blockInfo
-            ? this.getGlobalOffset(document, nodeStart, blockInfo)
-            : nodeStart
-        );
-        const end = document.positionAt(
-          blockInfo
-            ? this.getGlobalOffset(document, nodeEnd, blockInfo)
-            : nodeEnd
-        );
+        // FIXED: Simplify position adjustment for block analysis
+        let start, end;
 
-        // Adjust line numbers if analyzing a block
-        const adjustedStart = blockInfo
-          ? new vscode.Position(start.line + lineOffset, start.character)
-          : start;
-        const adjustedEnd = blockInfo
-          ? new vscode.Position(end.line + lineOffset, end.character)
-          : end;
+        if (blockInfo) {
+          // Use a single adjustment method with lineOffset
+          const localStart = document.positionAt(nodeStart);
+          const localEnd = document.positionAt(nodeEnd);
+
+          start = new vscode.Position(
+            localStart.line + lineOffset,
+            localStart.character
+          );
+          end = new vscode.Position(
+            localEnd.line + lineOffset,
+            localEnd.character
+          );
+        } else {
+          start = document.positionAt(nodeStart);
+          end = document.positionAt(nodeEnd);
+        }
 
         const issue: CodeIssue = {
           type: IssueType.Naming,
           message: `${this.getKindName(kind)} name "${name}" is too long (${
             name.length
           }). Names should be no more than ${maxNameLength} characters.`,
-          range: new vscode.Range(adjustedStart, adjustedEnd),
+          range: new vscode.Range(start, end),
           severity: IssueSeverity.Information,
           suggestions: [
             "Use shorter but still descriptive names",
@@ -150,25 +152,26 @@ export class NamingAnalyzer implements CodeAnalyzer {
         const nodeStart = node.getStart(sourceFile!);
         const nodeEnd = node.getEnd();
 
-        // Convert to document positions, adjusting for block position if needed
-        const start = document.positionAt(
-          blockInfo
-            ? this.getGlobalOffset(document, nodeStart, blockInfo)
-            : nodeStart
-        );
-        const end = document.positionAt(
-          blockInfo
-            ? this.getGlobalOffset(document, nodeEnd, blockInfo)
-            : nodeEnd
-        );
+        // FIXED: Simplify position adjustment for block analysis
+        let start, end;
 
-        // Adjust line numbers if analyzing a block
-        const adjustedStart = blockInfo
-          ? new vscode.Position(start.line + lineOffset, start.character)
-          : start;
-        const adjustedEnd = blockInfo
-          ? new vscode.Position(end.line + lineOffset, end.character)
-          : end;
+        if (blockInfo) {
+          // Use a single adjustment method with lineOffset
+          const localStart = document.positionAt(nodeStart);
+          const localEnd = document.positionAt(nodeEnd);
+
+          start = new vscode.Position(
+            localStart.line + lineOffset,
+            localStart.character
+          );
+          end = new vscode.Position(
+            localEnd.line + lineOffset,
+            localEnd.character
+          );
+        } else {
+          start = document.positionAt(nodeStart);
+          end = document.positionAt(nodeEnd);
+        }
 
         const convention = this.getConventionForKind(kind);
 
@@ -177,7 +180,7 @@ export class NamingAnalyzer implements CodeAnalyzer {
           message: `${this.getKindName(
             kind
           )} name "${name}" does not follow the ${convention} naming convention.`,
-          range: new vscode.Range(adjustedStart, adjustedEnd),
+          range: new vscode.Range(start, end),
           severity: IssueSeverity.Information,
           suggestions: [
             `Use ${convention} for ${this.getKindName(kind)} names`,
@@ -192,28 +195,12 @@ export class NamingAnalyzer implements CodeAnalyzer {
     return { issues };
   }
 
-  /**
-   * Converts a position in a block to a global document offset
-   */
-  private getGlobalOffset(
-    document: vscode.TextDocument,
-    localOffset: number,
-    blockInfo: BlockInfo
-  ): number {
-    // Calculate the offset at the beginning of the block
-    let blockStartOffset = 0;
-    for (let i = 0; i < blockInfo.startLine; i++) {
-      blockStartOffset += document.lineAt(i).text.length + 1; // +1 for newline
-    }
-
-    return blockStartOffset + localOffset;
-  }
-
   isEnabled(): boolean {
     const config = vscode.workspace.getConfiguration("cleanCodeAssistant");
     return config.get<boolean>("enableNamingAnalyzer", true);
   }
 
+  // The rest of the class remains unchanged
   private findIdentifiers(
     sourceFile: ts.SourceFile
   ): Array<{ node: ts.Node; name: string; kind: NamingKind }> {

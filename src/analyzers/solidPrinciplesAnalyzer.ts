@@ -51,16 +51,34 @@ export class SolidPrinciplesAnalyzer implements CodeAnalyzer {
     }
 
     // Check for Single Responsibility Principle violations
-    this.checkSingleResponsibility(sourceFile, document, issues);
+    this.checkSingleResponsibility(
+      sourceFile,
+      document,
+      issues,
+      lineOffset,
+      blockInfo
+    );
 
     // Check for Open/Closed Principle violations
-    this.checkOpenClosed(sourceFile, document, issues);
+    this.checkOpenClosed(sourceFile, document, issues, lineOffset, blockInfo);
 
     // Check for Interface Segregation Principle violations
-    this.checkInterfaceSegregation(sourceFile, document, issues);
+    this.checkInterfaceSegregation(
+      sourceFile,
+      document,
+      issues,
+      lineOffset,
+      blockInfo
+    );
 
     // Check for Dependency Inversion Principle violations
-    this.checkDependencyInversion(sourceFile, document, issues);
+    this.checkDependencyInversion(
+      sourceFile,
+      document,
+      issues,
+      lineOffset,
+      blockInfo
+    );
 
     return { issues };
   }
@@ -78,7 +96,9 @@ export class SolidPrinciplesAnalyzer implements CodeAnalyzer {
   private checkSingleResponsibility(
     sourceFile: ts.SourceFile,
     document: vscode.TextDocument,
-    issues: CodeIssue[]
+    issues: CodeIssue[],
+    lineOffset: number = 0,
+    blockInfo?: BlockInfo
   ): void {
     const config = vscode.workspace.getConfiguration("cleanCodeAssistant");
     const maxClassMethods = config.get<number>("maxClassMethods", 10);
@@ -98,8 +118,28 @@ export class SolidPrinciplesAnalyzer implements CodeAnalyzer {
         );
 
         if (methods.length > maxClassMethods) {
-          const start = document.positionAt(node.getStart(sourceFile));
-          const end = document.positionAt(node.name.getEnd());
+          const nodeStart = node.getStart(sourceFile);
+          const nodeEnd = node.name.getEnd();
+
+          // FIXED: Simplified position calculation
+          let start, end;
+
+          if (blockInfo) {
+            const localStart = document.positionAt(nodeStart);
+            const localEnd = document.positionAt(nodeEnd);
+
+            start = new vscode.Position(
+              localStart.line + lineOffset,
+              localStart.character
+            );
+            end = new vscode.Position(
+              localEnd.line + lineOffset,
+              localEnd.character
+            );
+          } else {
+            start = document.positionAt(nodeStart);
+            end = document.positionAt(nodeEnd);
+          }
 
           const issue: CodeIssue = {
             type: IssueType.SolidViolation,
@@ -126,9 +166,11 @@ export class SolidPrinciplesAnalyzer implements CodeAnalyzer {
       ) {
         const startPos = node.body.getStart(sourceFile);
         const endPos = node.body.getEnd();
-        const startLine = document.positionAt(startPos).line;
-        const endLine = document.positionAt(endPos).line;
-        const lineCount = endLine - startLine;
+
+        // Convert to document positions
+        const baseStartLine = document.positionAt(startPos).line;
+        const baseEndLine = document.positionAt(endPos).line;
+        const lineCount = baseEndLine - baseStartLine;
 
         if (lineCount > maxMethodLines) {
           let methodName = "anonymous method";
@@ -137,10 +179,30 @@ export class SolidPrinciplesAnalyzer implements CodeAnalyzer {
             methodName = node.name.text;
           }
 
-          const start = document.positionAt(node.getStart(sourceFile));
-          const end = document.positionAt(
-            node.name ? node.name.getEnd() : node.getStart(sourceFile) + 8
-          );
+          const nodeStart = node.getStart(sourceFile);
+          const nodeEnd = node.name
+            ? node.name.getEnd()
+            : node.getStart(sourceFile) + 8;
+
+          // FIXED: Simplified position calculation
+          let start, end;
+
+          if (blockInfo) {
+            const localStart = document.positionAt(nodeStart);
+            const localEnd = document.positionAt(nodeEnd);
+
+            start = new vscode.Position(
+              localStart.line + lineOffset,
+              localStart.character
+            );
+            end = new vscode.Position(
+              localEnd.line + lineOffset,
+              localEnd.character
+            );
+          } else {
+            start = document.positionAt(nodeStart);
+            end = document.positionAt(nodeEnd);
+          }
 
           const issue: CodeIssue = {
             type: IssueType.SolidViolation,
@@ -173,7 +235,9 @@ export class SolidPrinciplesAnalyzer implements CodeAnalyzer {
   private checkOpenClosed(
     sourceFile: ts.SourceFile,
     document: vscode.TextDocument,
-    issues: CodeIssue[]
+    issues: CodeIssue[],
+    lineOffset: number = 0,
+    blockInfo?: BlockInfo
   ): void {
     const config = vscode.workspace.getConfiguration("cleanCodeAssistant");
     const maxCaseClauses = config.get<number>("maxCaseClauses", 5);
@@ -184,8 +248,28 @@ export class SolidPrinciplesAnalyzer implements CodeAnalyzer {
         const clauses = node.caseBlock.clauses;
 
         if (clauses.length > maxCaseClauses) {
-          const start = document.positionAt(node.getStart(sourceFile));
-          const end = document.positionAt(node.expression.getEnd());
+          const nodeStart = node.getStart(sourceFile);
+          const nodeEnd = node.expression.getEnd();
+
+          // FIXED: Simplified position calculation
+          let start, end;
+
+          if (blockInfo) {
+            const localStart = document.positionAt(nodeStart);
+            const localEnd = document.positionAt(nodeEnd);
+
+            start = new vscode.Position(
+              localStart.line + lineOffset,
+              localStart.character
+            );
+            end = new vscode.Position(
+              localEnd.line + lineOffset,
+              localEnd.character
+            );
+          } else {
+            start = document.positionAt(nodeStart);
+            end = document.positionAt(nodeEnd);
+          }
 
           const issue: CodeIssue = {
             type: IssueType.SolidViolation,
@@ -222,8 +306,28 @@ export class SolidPrinciplesAnalyzer implements CodeAnalyzer {
         }
 
         if (count > maxCaseClauses) {
-          const start = document.positionAt(node.getStart(sourceFile));
-          const end = document.positionAt(node.expression.getEnd());
+          const nodeStart = node.getStart(sourceFile);
+          const nodeEnd = node.expression.getEnd();
+
+          // FIXED: Simplified position calculation
+          let start, end;
+
+          if (blockInfo) {
+            const localStart = document.positionAt(nodeStart);
+            const localEnd = document.positionAt(nodeEnd);
+
+            start = new vscode.Position(
+              localStart.line + lineOffset,
+              localStart.character
+            );
+            end = new vscode.Position(
+              localEnd.line + lineOffset,
+              localEnd.character
+            );
+          } else {
+            start = document.positionAt(nodeStart);
+            end = document.positionAt(nodeEnd);
+          }
 
           const issue: CodeIssue = {
             type: IssueType.SolidViolation,
@@ -256,7 +360,9 @@ export class SolidPrinciplesAnalyzer implements CodeAnalyzer {
   private checkInterfaceSegregation(
     sourceFile: ts.SourceFile,
     document: vscode.TextDocument,
-    issues: CodeIssue[]
+    issues: CodeIssue[],
+    lineOffset: number = 0,
+    blockInfo?: BlockInfo
   ): void {
     const config = vscode.workspace.getConfiguration("cleanCodeAssistant");
     const maxInterfaceMethods = config.get<number>("maxInterfaceMethods", 5);
@@ -269,8 +375,28 @@ export class SolidPrinciplesAnalyzer implements CodeAnalyzer {
         );
 
         if (methods.length > maxInterfaceMethods) {
-          const start = document.positionAt(node.getStart(sourceFile));
-          const end = document.positionAt(node.name.getEnd());
+          const nodeStart = node.getStart(sourceFile);
+          const nodeEnd = node.name.getEnd();
+
+          // FIXED: Simplified position calculation
+          let start, end;
+
+          if (blockInfo) {
+            const localStart = document.positionAt(nodeStart);
+            const localEnd = document.positionAt(nodeEnd);
+
+            start = new vscode.Position(
+              localStart.line + lineOffset,
+              localStart.character
+            );
+            end = new vscode.Position(
+              localEnd.line + lineOffset,
+              localEnd.character
+            );
+          } else {
+            start = document.positionAt(nodeStart);
+            end = document.positionAt(nodeEnd);
+          }
 
           const issue: CodeIssue = {
             type: IssueType.SolidViolation,
@@ -303,7 +429,9 @@ export class SolidPrinciplesAnalyzer implements CodeAnalyzer {
   private checkDependencyInversion(
     sourceFile: ts.SourceFile,
     document: vscode.TextDocument,
-    issues: CodeIssue[]
+    issues: CodeIssue[],
+    lineOffset: number = 0,
+    blockInfo?: BlockInfo
   ): void {
     function visit(node: ts.Node) {
       // Check for constructor methods
@@ -323,8 +451,28 @@ export class SolidPrinciplesAnalyzer implements CodeAnalyzer {
         if (node.body) {
           node.body.forEachChild((statement) => {
             findNewExpressions(statement, (newExpr, identifierName) => {
-              const start = document.positionAt(newExpr.getStart(sourceFile));
-              const end = document.positionAt(newExpr.getEnd());
+              const nodeStart = newExpr.getStart(sourceFile);
+              const nodeEnd = newExpr.getEnd();
+
+              // FIXED: Simplified position calculation
+              let start, end;
+
+              if (blockInfo) {
+                const localStart = document.positionAt(nodeStart);
+                const localEnd = document.positionAt(nodeEnd);
+
+                start = new vscode.Position(
+                  localStart.line + lineOffset,
+                  localStart.character
+                );
+                end = new vscode.Position(
+                  localEnd.line + lineOffset,
+                  localEnd.character
+                );
+              } else {
+                start = document.positionAt(nodeStart);
+                end = document.positionAt(nodeEnd);
+              }
 
               const issue: CodeIssue = {
                 type: IssueType.SolidViolation,
